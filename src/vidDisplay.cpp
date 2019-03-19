@@ -90,11 +90,42 @@ int main(int argc, char *argv[]) {
 		morphologyEx(threshed_frame, threshed_frame, MORPH_OPEN, kernel);
 
 		// run a connected components analysis on image
-		// int regions = connectedComponentsWithStats(threshed_frame, labeled_frame, 4, CV_16U);
-		int regions = connectedComponentsWithStats(threshed_frame, labeled_frame, stats, centroids, 4, CV_16U);
+		// int no_of_regions = connectedComponentsWithStats(threshed_frame, labeled_frame, 4, CV_16U);
+		int no_of_regions = connectedComponentsWithStats(threshed_frame, labeled_frame, stats, centroids, 4, CV_16U);
 		normalize(labeled_frame, labeled_frame, 0, 255, NORM_MINMAX, CV_8U);
 
-		printf("number of regions : %d\n", regions);
+		printf("number of regions : %d\n", no_of_regions);
+
+/*
+		vector<Vec3b> colors(no_of_regions);
+		colors[0] = Vec3b(0,0,0); // bg
+		for (int label = 1; label < no_of_regions; ++label){
+			colors[label] = Vec3b( rand()&255, rand()&255, rand()&255 );
+		}
+
+		Mat dst (labeled_frame.size(), CV_8UC3);
+		for (int r = 0; r < dst.rows; ++r){
+			for (int c = 0; c < dst.cols; ++c){
+				int label = labeled_frame.at<int>(r, c);
+				Vec3b &pixel = dst.at<Vec3b>(r, c);
+				pixel = colors[label];
+			}
+		}
+		imshow("connected comps", dst);
+
+*/
+		// draw rectangles around connected regions
+		vector<Rect> rectComponent;
+		for (int i = 0;i < no_of_regions ;i++)
+		{
+		Rect r(Rect(Point(stats.at<int>(i,CC_STAT_LEFT ),
+							stats.at<int>(i,CC_STAT_TOP)),
+							Size(stats.at<int>(i,CC_STAT_WIDTH ),
+							stats.at<int>(i,CC_STAT_HEIGHT))));
+			rectComponent.push_back(r);
+			rectangle(labeled_frame,r,Scalar::all(255),1);
+			// cout<<stats.at<int>(i,CC_STAT_AREA);
+		}
 
 		// show the processed output
 		imshow("threshed", labeled_frame);
