@@ -49,7 +49,9 @@ int main(int argc, char *argv[]) {
 	printf("Expected size: %d %d\n", refS.width, refS.height);
 
 	namedWindow("Video", 1); // identifies a window?
-	Mat frame, filtered_frame, threshed_frame, gray_frame;
+
+	// matrices to hold multiple image outputs, etc
+	Mat frame, filtered_frame, threshed_frame, gray_frame, kernel, labeled_frame, labels, centroids, img_color, stats;
 
 	
 	for(;!quit;) {
@@ -80,8 +82,22 @@ int main(int argc, char *argv[]) {
 		// thresh using otsu's binarization to separate image from background
 		threshold(gray_frame, threshed_frame, 0, 255, THRESH_BINARY+THRESH_OTSU);
 		
-		// show the threshed output
-		imshow("threshed", threshed_frame);
+		// morphological processing, closing and then opening to remove spurious regions and fill in holes in objects
+		// use a kernel size of 7
+		int morph_size = 7;
+		kernel = getStructuringElement( MORPH_OPEN, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+		morphologyEx(threshed_frame, threshed_frame, MORPH_CLOSE, kernel);
+		morphologyEx(threshed_frame, threshed_frame, MORPH_OPEN, kernel);
+
+		// run a connected components analysis on image
+		// int regions = connectedComponentsWithStats(threshed_frame, labeled_frame, 4, CV_16U);
+		int regions = connectedComponentsWithStats(threshed_frame, labeled_frame, stats, centroids, 4, CV_16U);
+		normalize(labeled_frame, labeled_frame, 0, 255, NORM_MINMAX, CV_8U);
+
+		printf("number of regions : %d\n", regions);
+
+		// show the processed output
+		imshow("threshed", labeled_frame);
 
 		// respond to keypresses
 		int key = waitKey(10);
