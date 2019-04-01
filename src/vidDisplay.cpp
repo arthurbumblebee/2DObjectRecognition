@@ -53,17 +53,16 @@ int main(int argc, char *argv[]) {
 	// matrices to hold multiple image outputs, etc
 	Mat frame, filtered_frame, threshed_frame, gray_frame, kernel, labeled_frame, labels, centroids, img_color, stats;
 
-	
+
 	for(;!quit;) {
-		*capdev >> frame; // get a new frame from the camera, treat as a stream
+		
+		// *capdev >> frame; // get a new frame from the camera, treat as a stream
+		frame = imread("../data/training/donut.000.png");
 
 		if( frame.empty() ) {
 		  printf("frame is empty\n");
 		  break;
 		}
-
-		// display the video frame in the window
-		imshow("Video", frame);
 
 		// fix edges and reduce noise by using median blur
 		medianBlur(frame, filtered_frame, 7);
@@ -76,9 +75,6 @@ int main(int argc, char *argv[]) {
 		// convert the frame to grayscale for thresholding
 		cvtColor(filtered_frame, gray_frame, COLOR_BGR2GRAY);
 			
-		// use adaptive threshing to separate image from background
-		// adaptiveThreshold(gray_frame, threshed_frame, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 11, 2);
-
 		// thresh using otsu's binarization to separate image from background
 		threshold(gray_frame, threshed_frame, 0, 255, THRESH_BINARY+THRESH_OTSU);
 		
@@ -86,8 +82,8 @@ int main(int argc, char *argv[]) {
 		// use a kernel size of 7
 		int morph_size = 7;
 		kernel = getStructuringElement( MORPH_OPEN, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
-		morphologyEx(threshed_frame, threshed_frame, MORPH_CLOSE, kernel);
-		morphologyEx(threshed_frame, threshed_frame, MORPH_OPEN, kernel);
+		morphologyEx(threshed_frame, threshed_frame, MORPH_CLOSE, kernel, Point(-1,-1), 1);
+		morphologyEx(threshed_frame, threshed_frame, MORPH_OPEN, kernel, Point(-1,-1), 1);
 
 		// run a connected components analysis on image
 		// int no_of_regions = connectedComponentsWithStats(threshed_frame, labeled_frame, 4, CV_16U);
@@ -118,14 +114,17 @@ int main(int argc, char *argv[]) {
 		vector<Rect> rectComponent;
 		for (int i = 0;i < no_of_regions ;i++)
 		{
-		Rect r(Rect(Point(stats.at<int>(i,CC_STAT_LEFT ),
+			Rect r(Rect(Point(stats.at<int>(i,CC_STAT_LEFT ),
 							stats.at<int>(i,CC_STAT_TOP)),
 							Size(stats.at<int>(i,CC_STAT_WIDTH ),
 							stats.at<int>(i,CC_STAT_HEIGHT))));
 			rectComponent.push_back(r);
-			rectangle(labeled_frame,r,Scalar::all(255),1);
+			rectangle(frame,r,Scalar::all(255),1);
 			// cout<<stats.at<int>(i,CC_STAT_AREA);
 		}
+
+		// display the video frame in the window
+		imshow("Video", frame);
 
 		// show the processed output
 		imshow("threshed", labeled_frame);
@@ -149,7 +148,7 @@ int main(int argc, char *argv[]) {
 				break;
 		}
 
-	}
+	} // end for
 
 	// terminate the video capture
 	printf("Terminating\n");
