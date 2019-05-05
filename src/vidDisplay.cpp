@@ -53,11 +53,17 @@ int main(int argc, char *argv[]) {
 	// matrices to hold multiple image outputs, etc
 	Mat frame, filtered_frame, threshed_frame, gray_frame, kernel, labeled_frame, labels, centroids, img_color, stats;
 
+	// colors for each region
+	int regions = 10;
+	vector<Vec3b> colors(regions);
+	for (int label = 0; label < regions; ++label){
+		colors[label] = Vec3b( rand()&255, rand()&255, rand()&255 );
+	}
 
 	for(;!quit;) {
 		
 		// *capdev >> frame; // get a new frame from the camera, treat as a stream
-		frame = imread("../data/training/paddle.000.png");
+		frame = imread("../data/training/shovel.000.png");
 
 		if( frame.empty() ) {
 		  printf("frame is empty\n");
@@ -91,13 +97,6 @@ int main(int argc, char *argv[]) {
 		normalize(labeled_frame, labeled_frame, 0, 255, NORM_MINMAX, CV_8U);
 
 		printf("number of regions : %d\n", no_of_regions);
-
-		// colors for each region
-		vector<Vec3b> colors(no_of_regions);
-		colors[0] = Vec3b(0,0,0); // bg
-		for (int label = 1; label < no_of_regions; ++label){
-			colors[label] = Vec3b( rand()&255, rand()&255, rand()&255 );
-		}
 
 		// draw rectangles around connected regions
 		vector<Rect> rectComponent;
