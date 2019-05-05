@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 	for(;!quit;) {
 		
 		// *capdev >> frame; // get a new frame from the camera, treat as a stream
-		frame = imread("../data/training/donut.000.png");
+		frame = imread("../data/training/paddle.000.png");
 
 		if( frame.empty() ) {
 		  printf("frame is empty\n");
@@ -92,24 +92,13 @@ int main(int argc, char *argv[]) {
 
 		printf("number of regions : %d\n", no_of_regions);
 
-/*
+		// colors for each region
 		vector<Vec3b> colors(no_of_regions);
 		colors[0] = Vec3b(0,0,0); // bg
 		for (int label = 1; label < no_of_regions; ++label){
 			colors[label] = Vec3b( rand()&255, rand()&255, rand()&255 );
 		}
 
-		Mat dst (labeled_frame.size(), CV_8UC3);
-		for (int r = 0; r < dst.rows; ++r){
-			for (int c = 0; c < dst.cols; ++c){
-				int label = labeled_frame.at<int>(r, c);
-				Vec3b &pixel = dst.at<Vec3b>(r, c);
-				pixel = colors[label];
-			}
-		}
-		imshow("connected comps", dst);
-
-*/
 		// draw rectangles around connected regions
 		vector<Rect> rectComponent;
 		for (int i = 0;i < no_of_regions ;i++)
@@ -119,15 +108,15 @@ int main(int argc, char *argv[]) {
 							Size(stats.at<int>(i,CC_STAT_WIDTH ),
 							stats.at<int>(i,CC_STAT_HEIGHT))));
 			rectComponent.push_back(r);
-			rectangle(frame,r,Scalar::all(255),1);
-			// cout<<stats.at<int>(i,CC_STAT_AREA);
+			rectangle(frame,r,colors[i],1);
+
 		}
+
+		// show the processed output
+		// imshow("threshed", labeled_frame);
 
 		// display the video frame in the window
 		imshow("Video", frame);
-
-		// show the processed output
-		imshow("threshed", labeled_frame);
 
 		// respond to keypresses
 		int key = waitKey(10);
