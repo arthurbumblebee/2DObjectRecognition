@@ -51,7 +51,9 @@ int main(int argc, char *argv[]) {
 	namedWindow("Video", 1); // identifies a window?
 
 	// matrices to hold multiple image outputs, etc
-	Mat frame, filtered_frame, threshed_frame, gray_frame, kernel, labeled_frame, labels, centroids, img_color, stats;
+	Mat frame, filtered_frame, threshed_frame, gray_frame, kernel, labeled_frame;
+	Mat labels, centroids, img_color, stats, regionImg;
+	Point center;
 
 	// colors for each region
 	int regions = 10;
@@ -98,19 +100,57 @@ int main(int argc, char *argv[]) {
 
 		printf("number of regions : %d\n", no_of_regions);
 
-		// draw rectangles around connected regions
 		vector<Rect> rectComponent;
-		for (int i = 0;i < no_of_regions ;i++)
+		for (int label = 0; label < no_of_regions ; label++)
 		{
-			Rect r(Rect(Point(stats.at<int>(i,CC_STAT_LEFT ),
-							stats.at<int>(i,CC_STAT_TOP)),
-							Size(stats.at<int>(i,CC_STAT_WIDTH ),
-							stats.at<int>(i,CC_STAT_HEIGHT))));
+			// draw rectangles around connected regions
+			Rect r(Rect(Point(stats.at<int>(label, CC_STAT_LEFT ),
+							stats.at<int>(label ,CC_STAT_TOP)),
+							Size(stats.at<int>(label ,CC_STAT_WIDTH ),
+							stats.at<int>(label ,CC_STAT_HEIGHT))));
 			rectComponent.push_back(r);
-			rectangle(frame,r,colors[i],1);
+			rectangle(frame, r, colors[label], 1);
 
+			// computes a set of features (moments) for a specified region given a region map and a region ID
+			// Calculate central Moments for each region processed threshold image
+			regionImg = (labeled_frame == label);
+			Moments my_moments = moments(regionImg, true);
+			// find and draw the center
+			if (my_moments.m00 != 0) {
+        center.x = my_moments.m10 / my_moments.m00;
+        center.y = my_moments.m01 / my_moments.m00;
+        circle(frame, center, 3, Scalar(0, 255, 0), -1);
+    	}
+			
+			// Calculate Hu Moments
+			double huMoments[7];
+			HuMoments(my_moments, huMoments);
+
+			// Log scale hu moments so that the scaling makes sense
+			for(int i = 0; i < 7; i++)
+			{
+				huMoments[i] = -1 * copysign(1.0, huMoments[i]) * log10(abs(huMoments[i]));  
+				printf("hu[%d] = %f\n", i, huMoments[i]);
+			}
 		}
 
+	/*
+		// computes a set of features for a specified region given a region map and a region ID
+		// Calculate central Moments for the processed threshold image
+		Moments momentss = moments(labeled_frame, false);
+		
+		// Calculate Hu Moments
+		double huMoments[7];
+		HuMoments(momentss, huMoments);
+
+		// Log scale hu moments so that the scaling makes sense
+		for(int i = 0; i < 7; i++)
+		{
+			huMoments[i] = -1 * copysign(1.0, huMoments[i]) * log10(abs(huMoments[i]));  
+			printf("hu[%d] = %f\n", i, huMoments[i]);
+		}
+
+*/
 		// show the processed output
 		// imshow("threshed", labeled_frame);
 
