@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 	for(;!quit;) {
 		
 		// *capdev >> frame; // get a new frame from the camera, treat as a stream
-		frame = imread("../data/training/shovel.000.png");
+		frame = imread("../data/training/donut.001.png");
 
 		if( frame.empty() ) {
 		  printf("frame is empty\n");
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 			regionImg = (labeled_frame == label);
 			Moments my_moments = moments(regionImg, true);
 			// find and draw the center
-			if (my_moments.m00 != 0) {
+			if (my_moments.m00 != 0) {\
         center.x = my_moments.m10 / my_moments.m00;
         center.y = my_moments.m01 / my_moments.m00;
         circle(frame, center, 3, Scalar(0, 255, 0), -1);
@@ -134,23 +134,6 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-	/*
-		// computes a set of features for a specified region given a region map and a region ID
-		// Calculate central Moments for the processed threshold image
-		Moments momentss = moments(labeled_frame, false);
-		
-		// Calculate Hu Moments
-		double huMoments[7];
-		HuMoments(momentss, huMoments);
-
-		// Log scale hu moments so that the scaling makes sense
-		for(int i = 0; i < 7; i++)
-		{
-			huMoments[i] = -1 * copysign(1.0, huMoments[i]) * log10(abs(huMoments[i]));  
-			printf("hu[%d] = %f\n", i, huMoments[i]);
-		}
-
-*/
 		// show the processed output
 		// imshow("threshed", labeled_frame);
 
@@ -170,6 +153,9 @@ int main(int argc, char *argv[]) {
 				sprintf(buffer, "%s.%03d.png", label, frameid++);
 				imwrite(buffer, frame, pars);
 				printf("Image written: %s\n", buffer);
+				break;
+			case 't':
+				quit = 1;
 				break;
 
 			default:
