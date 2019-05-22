@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 	for(;!quit;) {
 		
 		// *capdev >> frame; // get a new frame from the camera, treat as a stream
-		frame = imread("../data/training/donut.001.png");
+		frame = imread("../data/training/paddle.000.png");
 
 		if( frame.empty() ) {
 		  printf("frame is empty\n");
@@ -85,7 +85,8 @@ int main(int argc, char *argv[]) {
 			
 		// thresh using otsu's binarization to separate image from background
 		threshold(gray_frame, threshed_frame, 0, 255, THRESH_BINARY+THRESH_OTSU);
-		
+		// imshow("Video thresholded ", threshed_frame);
+
 		// morphological processing, closing and then opening to remove spurious regions and fill in holes in objects
 		// use a kernel size of 7
 		int morph_size = 7;
@@ -148,15 +149,19 @@ int main(int argc, char *argv[]) {
 				quit = 1;
 				break;
 
-			// capture a photo if the user hits c
-			case 'c': 
-				sprintf(buffer, "%s.%03d.png", label, frameid++);
-				imwrite(buffer, frame, pars);
-				printf("Image written: %s\n", buffer);
-				break;
 			case 't':
 				quit = 1;
 				break;
+			// capture a photo if the user hits p
+			case 'p': 
+			{
+				sprintf(buffer, "../data/%s%03d.png", label, frameid++);
+				imwrite(buffer, frame , pars);
+				printf("Image written: %s\n", buffer);
+
+				break;
+			}
+
 
 			default:
 				break;
